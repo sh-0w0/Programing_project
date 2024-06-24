@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
-#define WIDTH  31
-#define HEIGHT 31
+#include <conio.h>
+#include <windows.h>
+
+#define WIDTH  27
+#define HEIGHT 27
 
 // 구조체 정의: 미로에서의 점을 나타냅니다.
 typedef struct {
@@ -16,42 +18,47 @@ void print_map(int map[HEIGHT][WIDTH], int height, int width, Point player, int 
 void dfs(int map[HEIGHT][WIDTH], int height, int width);
 Point randomNeighbor(int map[HEIGHT][WIDTH], int visited[HEIGHT][WIDTH], int x, int y, int width, int height);
 int isInside(int x, int y, int width, int height);
-void move_player(Point *player, int map[HEIGHT][WIDTH], char direction, int *count, int *totalcount);
+void move_player(Point* player, int map[HEIGHT][WIDTH], char direction, int* count, int* totalcount);
 void end_game(Point player, int totalcount, int width, int height);
 
+int map[HEIGHT][WIDTH];
+int running = 1;
 int main() {
-    int map[HEIGHT][WIDTH];
-    int totalcount = 0; // 총 이동 횟수
-    int count = 0;      // 현재 맵에서의 이동 횟수
-    Point player = {1, 1}; // 플레이어의 초기 위치
-    char command;
+    if (running) {
+        int totalcount = 0; // 총 이동 횟수
+        int count = 0;      // 현재 맵에서의 이동 횟수
+        Point player = { 1, 1 }; // 플레이어의 초기 위치
+        char command = NULL;
 
-    srand(time(NULL)); // 랜덤 숫자 생성 초기화
-    make_map(map, HEIGHT, WIDTH); // 초기 맵 생성
-    dfs(map, HEIGHT, WIDTH);      // DFS를 이용해 미로 생성
+        srand(time(NULL)); // 랜덤 숫자 생성 초기화
+        make_map(map, HEIGHT, WIDTH); // 초기 맵 생성
+        dfs(map, HEIGHT, WIDTH);      // DFS를 이용해 미로 생성
+        print_map(map, HEIGHT, WIDTH, player, count); // 초기 맵 출력
 
-    while (1) {
-        print_map(map, HEIGHT, WIDTH, player, count); // 현재 맵 상태 출력
+        while (1) {
+            if (_kbhit()) {
+                command = _getch(); // 사용자 입력 받기
+                move_player(&player, map, command, &count, &totalcount); // 플레이어 이동 처리
+                print_map(map, HEIGHT, WIDTH, player, count); // 맵 상태 출력
+                end_game(player, totalcount, WIDTH, HEIGHT); // 게임 종료 조건 확인
 
-        command = getchar(); // 사용자 입력 받기
+                // 이동 횟수가 10번이면 맵을 새로 생성
+                if (count == 10) {
+                    count = 0;
+                    make_map(map, HEIGHT, WIDTH);
+                    dfs(map, HEIGHT, WIDTH);
+                    print_map(map, HEIGHT, WIDTH, player, count); // 새 맵 상태 출력
+                }
+            }
 
-        if (command == 'q') { // 사용자가 'q'를 누르면 종료
-            break;
+            // 사용자가 'q'를 누르면 종료
+            if (command == 'q') {
+                break;
+            }
         }
 
-        move_player(&player, map, command, &count, &totalcount); // 플레이어 이동 처리
-
-        end_game(player, totalcount, WIDTH, HEIGHT); // 게임 종료 조건 확인
-
-        // 이동 횟수가 10번이면 맵을 새로 생성
-        if (count == 10) {
-            count = 0;
-            make_map(map, HEIGHT, WIDTH);
-            dfs(map, HEIGHT, WIDTH);
-        }
-
-        // usleep(100000); // 이동 후 잠시 멈춤
     }
+    printf("afhsdfal;");
 
     return 0;
 }
@@ -73,6 +80,7 @@ void make_map(int map[HEIGHT][WIDTH], int height, int width) {
 
 // 맵을 출력하는 함수
 void print_map(int map[HEIGHT][WIDTH], int height, int width, Point player, int count) {
+    system("cls");
     printf("\n\n");
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
@@ -88,11 +96,11 @@ void print_map(int map[HEIGHT][WIDTH], int height, int width, Point player, int 
 
 // DFS를 이용해 미로를 생성하는 함수
 void dfs(int map[HEIGHT][WIDTH], int height, int width) {
-    int visited[HEIGHT][WIDTH] = {0}; // 방문 여부를 저장하는 배열
+    int visited[HEIGHT][WIDTH] = { 0 }; // 방문 여부를 저장하는 배열
     Point stack[WIDTH * HEIGHT]; // DFS를 위한 스택
     int top = 0;
 
-    Point start = {1, 1};
+    Point start = { 1, 1 };
     stack[top++] = start;
     visited[start.y][start.x] = 1; // 시작점을 방문으로 표시
 
@@ -105,7 +113,8 @@ void dfs(int map[HEIGHT][WIDTH], int height, int width) {
             map[(current.y + neighbor.y) / 2][(current.x + neighbor.x) / 2] = 0;
             visited[neighbor.y][neighbor.x] = 1; // 이웃 점을 방문으로 표시
             stack[top++] = neighbor;
-        } else {
+        }
+        else {
             top--; // 더 이상 방문할 이웃이 없으면 스택에서 제거
         }
     }
@@ -118,22 +127,23 @@ Point randomNeighbor(int map[HEIGHT][WIDTH], int visited[HEIGHT][WIDTH], int x, 
 
     // 상하좌우 이웃 점을 확인
     if (isInside(x, y - 2, width, height) && !visited[y - 2][x]) {
-        neighbors[count++] = (Point){x, y - 2};
+        neighbors[count++] = (Point){ x, y - 2 };
     }
     if (isInside(x, y + 2, width, height) && !visited[y + 2][x]) {
-        neighbors[count++] = (Point){x, y + 2};
+        neighbors[count++] = (Point){ x, y + 2 };
     }
     if (isInside(x - 2, y, width, height) && !visited[y][x - 2]) {
-        neighbors[count++] = (Point){x - 2, y};
+        neighbors[count++] = (Point){ x - 2, y };
     }
     if (isInside(x + 2, y, width, height) && !visited[y][x + 2]) {
-        neighbors[count++] = (Point){x + 2, y};
+        neighbors[count++] = (Point){ x + 2, y };
     }
 
     // 이웃이 없으면 (-1, -1) 반환
     if (count == 0) {
-        return (Point){-1, -1};
-    } else {
+        return (Point) { -1, -1 };
+    }
+    else {
         int index = rand() % count; // 랜덤한 이웃 점 선택
         return neighbors[index];
     }
@@ -145,17 +155,17 @@ int isInside(int x, int y, int width, int height) {
 }
 
 // 플레이어를 이동시키는 함수
-void move_player(Point *player, int map[HEIGHT][WIDTH], char direction, int *count, int *totalcount) {
+void move_player(Point* player, int map[HEIGHT][WIDTH], char direction, int* count, int* totalcount) {
     int new_x = player->x;
     int new_y = player->y;
 
     // 사용자의 입력에 따라 이동할 위치 결정
     switch (direction) {
-        case 'w': new_y--; break;
-        case 's': new_y++; break;
-        case 'a': new_x--; break;
-        case 'd': new_x++; break;
-        default: return; // 다른 입력은 무시
+    case 'w': new_y--; break;
+    case 's': new_y++; break;
+    case 'a': new_x--; break;
+    case 'd': new_x++; break;
+    default: return; // 다른 입력은 무시
     }
 
     // 이동할 위치가 맵 안에 있고 길인 경우에만 이동
@@ -173,13 +183,12 @@ void end_game(Point player, int totalcount, int width, int height) {
         printf("Game Finished\nTotal movements: %d\n", totalcount); // 게임 종료 메시지
 
         printf("Play Again?(Y/N): ");
-        getchar();
         char ask_start = getchar();
-        if(ask_start == 'Y' || ask_start == 'y') {
-            main(); // 다시 시작
+        if (ask_start == 'Y' || ask_start == 'y') {
+            main();
         }
-        else if(ask_start == 'N' || ask_start == 'n') {
-            exit(0); // 게임 종료
+        else if (ask_start == 'N' || ask_start == 'n') {
+            printf("Ctrl + C를 눌러 종료");
         }
     }
 }
