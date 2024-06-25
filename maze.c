@@ -4,8 +4,9 @@
 #include <conio.h>
 #include <windows.h>
 
-#define WIDTH  27
-#define HEIGHT 27
+
+#define WIDTH  25
+#define HEIGHT 25
 
 // 구조체 정의: 미로에서의 점을 나타냅니다.
 typedef struct {
@@ -41,7 +42,6 @@ int main() {
                 move_player(&player, map, command, &count, &totalcount); // 플레이어 이동 처리
                 print_map(map, HEIGHT, WIDTH, player, count); // 맵 상태 출력
                 end_game(player, totalcount, WIDTH, HEIGHT); // 게임 종료 조건 확인
-
                 // 이동 횟수가 10번이면 맵을 새로 생성
                 if (count == 10) {
                     count = 0;
@@ -51,6 +51,8 @@ int main() {
                 }
             }
 
+
+
             // 사용자가 'q'를 누르면 종료
             if (command == 'q') {
                 break;
@@ -58,7 +60,6 @@ int main() {
         }
 
     }
-    printf("afhsdfal;");
 
     return 0;
 }
@@ -180,15 +181,18 @@ void move_player(Point* player, int map[HEIGHT][WIDTH], char direction, int* cou
 // 게임 종료 조건을 확인하는 함수
 void end_game(Point player, int totalcount, int width, int height) {
     if (player.x == width - 2 && player.y == height - 2) {
-        printf("Game Finished\nTotal movements: %d\n", totalcount); // 게임 종료 메시지
 
+        // 플레이어에게 다시 플레이할 것인지 물어봄
+        printf("total move: %d\n", totalcount);
         printf("Play Again?(Y/N): ");
         char ask_start = getchar();
         if (ask_start == 'Y' || ask_start == 'y') {
+            // main 함수를 다시 호출하여 게임을 재시작
             main();
         }
         else if (ask_start == 'N' || ask_start == 'n') {
-            printf("Ctrl + C를 눌러 종료");
+            exit(1);
         }
+
     }
 }
